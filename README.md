@@ -43,7 +43,10 @@ All arguments after the options are passed directly to the Claude CLI.
 
 ### Options
 
+- `--help`: Show help message
+- `--log_dir=DIR`: Specify directory for logs (default: ./logs)
 - `--print`: Show debug messages (default: off)
+- `--install-alias`: Install 'claude' alias in your shell configuration
 
 ### Examples
 

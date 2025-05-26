@@ -146,6 +146,7 @@ console.log(`Logs will be ${isNewLogFile ? 'created at' : 'appended to'}: ${logF
 console.log("Initializing request capture...");
 
 // Set up environment for direct_capture.js
+const existingNodeOptions = process.env.NODE_OPTIONS || "";
 const captureEnv = {
   ...process.env,
   CLAUDE_API_LOG_FILE: logFile,
@@ -153,8 +154,12 @@ const captureEnv = {
   CLAUDE_DEBUG: printDebug ? "true" : "false",
   CLAUDE_LOGGER_VERSION: version,
   CLAUDE_LOGGER_SESSION_ID: sessionId, // Pass session ID for consistency across runs
-  NODE_OPTIONS: `--require "${path.join(__dirname, "direct_capture.js")}"`,
+  NODE_OPTIONS: `${existingNodeOptions} --require "${path.join(__dirname, "direct_capture.js")}"`.trim(),
 };
+
+if (printDebug) {
+  console.log("NODE_OPTIONS:", captureEnv.NODE_OPTIONS);
+}
 
 // Fix for cursor position - pass stdin directly to the claude process
 // and use stdio: 'inherit' for stdout so that terminal control sequences work properly
@@ -183,8 +188,11 @@ claudeProcess.stderr.on("data", (data) => {
 
 // Handle process exit
 claudeProcess.on("close", (code) => {
-  console.log(`Logs written to ${logFile}`);
-  process.exit(code);
+  // Give the child process time to flush logs
+  setTimeout(() => {
+    console.log(`Logs written to ${logFile}`);
+    process.exit(code);
+  }, 100);
 });
 
 claudeProcess.on("error", (err) => {
